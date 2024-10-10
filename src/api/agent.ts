@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 
 
 axios.defaults.baseURL="http://192.168.0.28:1234/reports/";
@@ -28,3 +28,10 @@ const reports={
     goods_stock: (from: Date, to: Date)=> requests.get(`goods-stock?from=${from}&to=${to}`),
     invoices: (from: Date, to: Date)=> requests.get(`invoices?from=${from}&to=${to}`),
 }
+
+
+const Agent={
+    reports
+}
+
+export default Agent;
