@@ -16,7 +16,7 @@ export const fetchFinancijskoStanjeAsync= createAsyncThunk<UniverzalniItems2>(
     'financijskoStanje/fetchFinancijskoStanjeAsync',
     async(_, thunkAPI)=>{
         try {
-            return await Agent.reports.invoices(new Date(), new Date());
+            return await Agent.agent.taxes_total(new Date(), new Date());
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }

@@ -1,8 +1,17 @@
 export interface UniverzalniItems{
-    id: number;
-    naziv: string;
-    cijena: number;
-    kolicina: number;
-    postotak: number|string;
-    ukupno_formatirano: number|string;
+    Id: string;
+    Name: string;
+    IsChecked: boolean;
+    Url: string;
+    Items: Items[];
 }
+
+export interface Items{
+    Id: string;
+    Name: string;
+    Value: number;
+    Quantity: number;
+    Percentage: number;
+    TotalFormatted: string;
+}
+

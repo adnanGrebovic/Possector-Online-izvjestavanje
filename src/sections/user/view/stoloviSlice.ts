@@ -1,22 +1,22 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Agent from "src/api/agent";
-import { StoloviItems } from "src/models/stolovi";
+import { Stolovi } from "src/models/stolovi";
 
 interface StoloviState{
-    stolovi: StoloviItems| null;
-    status: string;
+    stolovi: Stolovi| null;
+    loading: boolean;
 }
 
 const initialState: StoloviState={
     stolovi: null,
-    status: "idle"
+    loading: false
 }
 
-export const fetchStoloviAsync= createAsyncThunk<StoloviItems>(
+export const fetchStoloviAsync= createAsyncThunk<Stolovi>(
     'stolovi/fetchStoloviAsync',
     async(_, thunkAPI)=>{
         try {
-            return await Agent.reports.articles_sales(new Date(), new Date());
+            return await Agent.agent.invoices(new Date(), new Date());
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -30,7 +30,25 @@ export const stoloviSlice= createSlice({
         setStolovi:(state, action)=>{
             state.stolovi=action.payload;
         }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchStoloviAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchStoloviAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.stolovi = action.payload;
+                
+            })
+            .addCase(fetchStoloviAsync.rejected, (state, _action) => {
+                state.loading = false;
+                
+            });
     }
 })
 
 export const{setStolovi}= stoloviSlice.actions;
+export default stoloviSlice.reducer;

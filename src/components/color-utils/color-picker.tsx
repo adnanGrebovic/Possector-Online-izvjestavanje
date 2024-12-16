@@ -1,4 +1,4 @@
-import type { BoxProps } from '@mui/material/Box';
+import type  {BoxProps}  from '@mui/material/Box';
 
 import { forwardRef, useCallback } from 'react';
 
@@ -105,3 +105,4 @@ export const ColorPicker = forwardRef<HTMLDivElement, BoxProps & ColorPickerProp
     );
   }
 );
+

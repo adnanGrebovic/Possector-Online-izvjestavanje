@@ -36,6 +36,7 @@ module.exports = {
     'no-restricted-exports': 0,
     'no-promise-executor-return': 0,
     'import/prefer-default-export': 0,
+    "import/no-named-as-default": 0,
     'prefer-destructuring': [1, { object: true, array: false }],
     // typescript
     '@typescript-eslint/naming-convention': 0,
@@ -55,7 +56,7 @@ module.exports = {
     'react/no-unstable-nested-components': [1, { allowAsProps: true }],
     // jsx-a11y
     'jsx-a11y/anchor-is-valid': 0,
-    'jsx-a11y/control-has-associated-label': 0,
+    'jsx-a11y/control-has-associated-label': "off",
     // unused imports
     'unused-imports/no-unused-imports': 1,
     'unused-imports/no-unused-vars': [

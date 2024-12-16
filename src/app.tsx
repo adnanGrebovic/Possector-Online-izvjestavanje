@@ -9,11 +9,15 @@ import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
 import { ThemeProvider } from 'src/theme/theme-provider';
 
 import { Iconify } from 'src/components/iconify';
+import { useEffect, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
+
 export default function App() {
   useScrollToTop();
+
+
 
   const githubButton = (
     <Fab

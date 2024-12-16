@@ -31,7 +31,7 @@ export function UserTableHead({
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
+        <TableCell padding="checkbox" sx={{position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white'}}>
           <Checkbox
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
@@ -46,13 +46,15 @@ export function UserTableHead({
             key={headCell.id}
             align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
-            sx={{ width: headCell.width, minWidth: headCell.minWidth }}
+            sx={{ width: headCell.width, minWidth: headCell.minWidth, position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white', fontWeight: 'bold', paddingRight: headCell.paddingRight || 0, paddingLeft: headCell.paddingLeft || 0}}
           >
             <TableSortLabel
               hideSortIcon
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={() => onSort(headCell.id)}
+              onClick={() => 
+               { console.log('sorting by', headCell.id)
+                onSort(headCell.id)}}
             >
               {headCell.label}
               {orderBy === headCell.id ? (

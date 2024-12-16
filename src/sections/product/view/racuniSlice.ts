@@ -1,37 +1,95 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { StatementSync } from "node:sqlite";
 import Agent from "src/api/agent";
-import { RacuniItems } from "src/models/racuni";
+import { Racuni } from "src/models/racuni";
+import { ResponseRacuna } from "src/models/serverResponse";
 
-interface RacuniState{
-    racuni: RacuniItems|null;
-    status: string;
+interface RacuniState {
+    racuni: Racuni[] | null;
+    loading: boolean;
+    // page: number;
+    // pageSize: number;
 }
 
-const initialState: RacuniState={
+const initialState: RacuniState = {
     racuni: null,
-    status:"idle"
+    loading: false,
+    // page: 1,
+    // pageSize: 50,
 }
 
-export const fetchRacuniAsync= createAsyncThunk<RacuniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+    // page: number;
+    // pageSize: number;
+}
+
+
+
+export const fetchRacuniAsync = createAsyncThunk<Racuni[], FetchRacuniParams>(
     'racuni/fetchRacuniAsync',
-    async(_,thunkAPI)=>{
+    async ({ from, to }, thunkAPI) => {
+        // const state= thunkAPI.getState() as {racuni: RacuniState};
+        // const currentPage= state.racuni.page;
+        // const currentPageSize= state.racuni.pageSize;
+        // console.log("tttt", currentPageSize);
+        // console.log("hello");
         try {
-            return await Agent.reports.waiters_sales(new Date(), new Date());
+            const data: ResponseRacuna[] = await Agent.agent.invoices(from, to );
+            const parsedData: Racuni[] = [];
+            data.forEach((item, index) => {
+                parsedData.push({
+                    id: item.Id,
+                    invoice_number: item.InvoiceNumber,
+                    waiter_name: item.Waiter.Name,
+                    payment_type: item.PaymentType.Name,
+                    total: item.Total,
+                    DateCreated: item.DateCreated,
+                    tableItems: item.Items.map(artical => ({
+                        articlename: artical.Article.Name,
+                        price: artical.Price
+                    })),
+
+                })
+            })
+            return parsedData;
         } catch (error: any) {
-            return thunkAPI.rejectWithValue({error: error.data})
+            return thunkAPI.rejectWithValue({ error: error.data })
         }
     }
 
 )
 
-export const racuniSlice= createSlice({
+export const racuniSlice = createSlice({
     name: 'racuni',
     initialState,
-    reducers:{
-        setRacuni:(state, action)=>{
-            state.racuni=action.payload;
-        }
+    reducers: {
+        // setPage: (state, action: PayloadAction<number>)=>{
+        //     state.page= action.payload;
+        // },
+        // setPageSize: (state, action: PayloadAction<number>)=>{
+        //     state.pageSize= action.payload;
+        // }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchRacuniAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchRacuniAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.racuni = action.payload;
+
+            })
+            .addCase(fetchRacuniAsync.rejected, (state, _action) => {
+                state.loading = false;
+
+            });
     }
 })
 
-export const{setRacuni}= racuniSlice.actions;
+export default racuniSlice.reducer;
+// export const {setPage, setPageSize}= racuniSlice.actions;

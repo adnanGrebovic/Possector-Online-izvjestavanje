@@ -4,19 +4,25 @@ import { UniverzalniItems } from "src/models/univerzalni";
 
 interface PoreziPoGrupamaState{
     poreziPoGrupama: UniverzalniItems|null;
-    status: string;
+    loading: boolean;
 }
 
 const initialState: PoreziPoGrupamaState={
     poreziPoGrupama: null,
-    status:"idle"
+    loading: false
 }
 
-export const fetchPoreziPoGrupamaAsync= createAsyncThunk<UniverzalniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+}
+
+export const fetchPoreziPoGrupamaAsync= createAsyncThunk<UniverzalniItems, FetchRacuniParams>(
     'poreziPoGrupama/fetchPoreziPoGrupamaAsync',
-    async(_, thunkAPI)=>{
+    async({from, to}, thunkAPI)=>{
         try {
-            return await Agent.reports.payment_types(new Date(), new Date());
+            const data: UniverzalniItems= await Agent.agent.taxes_tags(from, to);
+            return data;
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -28,10 +34,25 @@ export const poreziPoGrupamaSlice= createSlice({
     name: 'poreziPoGrupama',
     initialState,
     reducers:{
-        setPoreziPoGrupama:(state, action)=>{
-            state.poreziPoGrupama= action.payload;
-        }
+        
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchPoreziPoGrupamaAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchPoreziPoGrupamaAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.poreziPoGrupama = action.payload;
+
+            })
+            .addCase(fetchPoreziPoGrupamaAsync.rejected, (state, _action) => {
+                state.loading = false;
+
+            });
     }
 })
 
-export const{setPoreziPoGrupama}= poreziPoGrupamaSlice.actions;
+export default poreziPoGrupamaSlice.reducer; 

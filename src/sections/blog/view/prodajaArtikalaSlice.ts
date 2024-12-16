@@ -1,22 +1,28 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Agent from "src/api/agent";
-import { UniverzalniItems } from "src/models/univerzalni";
+import { Items, UniverzalniItems } from "src/models/univerzalni";
 
 interface ProdajaArtikalaState{
     prodajaArtikala: UniverzalniItems|null;
-    status: string;
+    loading: boolean;
 }
 
 const initialState: ProdajaArtikalaState={
     prodajaArtikala: null,
-    status: "idle"
+    loading: false
 }
 
-export const fetchProdajaArtikalaAsync= createAsyncThunk<UniverzalniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+}
+
+export const fetchProdajaArtikalaAsync= createAsyncThunk<UniverzalniItems, FetchRacuniParams>(
  'prodajaArtikala/fetchProdajaArtikalaAsync',
-    async(_, thunkAPI)=>{
-        try {
-            return await Agent.reports.taxes_total(new Date(), new Date());
+    async({from, to}, thunkAPI)=>{
+        try { 
+            const data: UniverzalniItems= await Agent.agent.articles_sales(from, to);
+            return data;
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -27,10 +33,26 @@ export const prodajaArtikalaSlice= createSlice({
     name: 'prodajaArtikala',
     initialState,
     reducers:{
-        setProdajaArtikala:(state, action)=>{
-            state.prodajaArtikala= action.payload;
-        }
+        
+        },
+    
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchProdajaArtikalaAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchProdajaArtikalaAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.prodajaArtikala = action.payload;
+                
+            })
+            .addCase(fetchProdajaArtikalaAsync.rejected, (state, _action) => {
+                state.loading = false;
+                
+            });
     }
 })
 
-export const{setProdajaArtikala}= prodajaArtikalaSlice.actions;
+export default prodajaArtikalaSlice.reducer;

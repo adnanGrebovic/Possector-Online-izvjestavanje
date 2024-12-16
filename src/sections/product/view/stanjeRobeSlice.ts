@@ -4,19 +4,25 @@ import { UniverzalniItems } from "src/models/univerzalni";
 
 interface StanjeRobeState{
     stanjeRobe: UniverzalniItems|null;
-    status: string;
+    loading: boolean;
 }
 
 const initialState: StanjeRobeState={
     stanjeRobe: null,
-    status:"idle"
+    loading: false
 }
 
-export const fetchStanjeRobeAsync= createAsyncThunk<UniverzalniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+}
+
+export const fetchStanjeRobeAsync= createAsyncThunk<UniverzalniItems, FetchRacuniParams>(
     'stanjeRobe/fetchStanjeRobeAsync',
-    async(_, thunkAPI)=>{
+    async({from, to}, thunkAPI)=>{
         try {
-            return await Agent.reports.tax_free(new Date(), new Date());
+            const data: UniverzalniItems= await Agent.agent.storage_report(from, to);
+            return data;
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -27,10 +33,25 @@ export const stanjeRobeSlice= createSlice({
     name:'stanjeRobe',
     initialState,
     reducers:{
-        setStanjeRobe:(state, action)=>{
-            state.stanjeRobe= action.payload;
-        }
+        
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchStanjeRobeAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchStanjeRobeAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.stanjeRobe = action.payload;
+
+            })
+            .addCase(fetchStanjeRobeAsync.rejected, (state, _action) => {
+                state.loading = false;
+
+            });
     }
 })
 
-export const{setStanjeRobe}= stanjeRobeSlice.actions;
+export default stanjeRobeSlice.reducer;

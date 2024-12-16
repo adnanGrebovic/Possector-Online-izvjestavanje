@@ -4,19 +4,25 @@ import { UniverzalniItems } from "src/models/univerzalni";
 
 interface PrometPoKupcimaState{
     prometPoKupcima: UniverzalniItems|null;
-    status: string;
+    loading: boolean;
 }
 
 const initialState: PrometPoKupcimaState={
     prometPoKupcima: null,
-    status:"idle"
+    loading: false
 }
 
-export const fetchPrometPoKupcimaAsync= createAsyncThunk<UniverzalniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+}
+
+export const fetchPrometPoKupcimaAsync= createAsyncThunk<UniverzalniItems, FetchRacuniParams>(
     'prometPoKupcima/fetchPrometPoKupcimaAsync',
-    async(_, thunkAPI)=>{
+    async({from, to}, thunkAPI)=>{
         try {
-            return await Agent.reports.goods_stock(new Date(), new Date());
+            const data: UniverzalniItems= await Agent.agent.customers_sales(from, to);
+            return data;
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }
@@ -27,10 +33,25 @@ export const prometPoKupcimaSlice= createSlice({
     name: 'prometPoKupcima',
     initialState,
     reducers:{
-        setPrometPoKupcima:(state, action)=>{
-            state.prometPoKupcima= action.payload;
-        }
+        
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchPrometPoKupcimaAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchPrometPoKupcimaAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.prometPoKupcima = action.payload;
+
+            })
+            .addCase(fetchPrometPoKupcimaAsync.rejected, (state, _action) => {
+                state.loading = false;
+
+            });
     }
 })
 
-export const{setPrometPoKupcima}= prometPoKupcimaSlice.actions;
+export default prometPoKupcimaSlice.reducer;

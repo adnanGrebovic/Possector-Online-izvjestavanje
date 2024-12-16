@@ -1,36 +1,57 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Agent from "src/api/agent";
-import { UniverzalniItems } from "src/models/univerzalni";
+import { Items, UniverzalniItems } from "src/models/univerzalni";
 
-interface ProdajaPoOperaterimaState{
-    prodajaPoOperaterima: UniverzalniItems|null;
-    status: string;
+interface ProdajaPoOperaterimaState {
+    prodajaPoOperaterima: UniverzalniItems | null;
+    loading: boolean;
 }
 
-const initialState: ProdajaPoOperaterimaState={
+const initialState: ProdajaPoOperaterimaState = {
     prodajaPoOperaterima: null,
-    status:"idle"
+    loading: false
 }
 
-export const fetchProdajaPoOperaterimaAsync= createAsyncThunk<UniverzalniItems>(
+interface FetchRacuniParams {
+    from: string;
+    to: string;
+}
+
+export const fetchProdajaPoOperaterimaAsync = createAsyncThunk<UniverzalniItems, FetchRacuniParams>(
     'prodajaPoOperaterima/fetchProdajaPoOperaterimaAsync',
-    async(_, thunkAPI)=>{
+    async ({from, to}, thunkAPI) => {
         try {
-            return await Agent.reports.taxes_tags(new Date(), new Date());
+            const data: UniverzalniItems= await Agent.agent.waiters_sales(from, to);
+            return data;
         } catch (error: any) {
-            return thunkAPI.rejectWithValue({error: error.data})
+            return thunkAPI.rejectWithValue({ error: error.data })
         }
     }
 )
 
-export const prodajaPoOperaterimaSlice= createSlice({
+export const prodajaPoOperaterimaSlice = createSlice({
     name: 'prodajaPoOperaterima',
     initialState,
-    reducers:{
-        setProdajaPoOperaterima:(state, action)=>{
-            state.prodajaPoOperaterima= action.payload;
-        }
+    reducers: {
+       
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchProdajaPoOperaterimaAsync.pending, (state) => {
+                if (!state.loading) {
+                    state.loading = true;
+                }
+            })
+            .addCase(fetchProdajaPoOperaterimaAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.prodajaPoOperaterima = action.payload;
+
+            })
+            .addCase(fetchProdajaPoOperaterimaAsync.rejected, (state, _action) => {
+                state.loading = false;
+
+            });
     }
 })
 
-export const{setProdajaPoOperaterima}= prodajaPoOperaterimaSlice.actions;
+export default prodajaPoOperaterimaSlice.reducer;

@@ -16,7 +16,7 @@ export const fetchArtikliAsync= createAsyncThunk<ArtikliItems>(
     'artikli/fetchArtikliAsync',
     async(_, thunkAPI)=>{
         try {
-            return await Agent.reports.goods_stock(new Date(), new Date());
+            return await Agent.agent.waiters_sales(new Date(), new Date());
         } catch (error: any) {
             return thunkAPI.rejectWithValue({error: error.data})
         }

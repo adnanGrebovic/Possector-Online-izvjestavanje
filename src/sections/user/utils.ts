@@ -22,33 +22,79 @@ export function emptyRows(page: number, rowsPerPage: number, arrayLength: number
 
 // ----------------------------------------------------------------------
 
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
+
+
+ export function getComparator(order: 'asc' | 'desc', orderBy: string) {
+
+  
+  function extractNumber(value: any): number {
+    if (typeof value === 'number') return value;
+
+    if (!value || typeof value !== 'string') return 0;
+
+    const cleanedString = value.replace(/[^0-9.,-]/g, '');
+
+    const hasComma = cleanedString.includes(',');
+    const hasDot = cleanedString.includes('.');
+    const isEuropeanFormat = hasComma && (!hasDot || cleanedString.indexOf(',') > cleanedString.indexOf('.'));
+
+    const normalizedString = isEuropeanFormat
+        ? cleanedString.replace(/\./g, '').replace(',', '.') 
+        : cleanedString.replace(/,/g, '');                   
+
+    const number = parseFloat(normalizedString);
+
+    return Number.isNaN(number) ? 0 : number;
 }
 
-// ----------------------------------------------------------------------
 
-export function getComparator<Key extends keyof any>(
-  order: 'asc' | 'desc',
-  orderBy: Key
-): (
-  a: {
-    [key in Key]: number | string;
-  },
-  b: {
-    [key in Key]: number | string;
-  }
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+
+  // return (a: any, b: any) => {
+  //   const valueA = a[orderBy];
+  //   const valueB = b[orderBy];
+
+  //   if (typeof valueA === 'string' && typeof valueB === 'string') {
+  //     // Use localeCompare for strings to handle alphabetical sorting
+  //     const comparison = valueA.localeCompare(valueB);
+  //     return order === 'asc' ? comparison : -comparison;
+  //   } 
+  //     // For numbers, perform a regular comparison
+  //     if (valueA < valueB) return order === 'asc' ? -1 : 1;
+  //     if (valueA > valueB) return order === 'asc' ? 1 : -1;
+  //     return 0;
+    
+  // };
+
+
+  return (a: any, b: any) => {
+    const valueA = a[orderBy];
+    const valueB = b[orderBy];
+
+    if (typeof valueA === 'string' || typeof valueB === 'string') {
+      const numberA = extractNumber(valueA);
+      const numberB = extractNumber(valueB);
+
+      if (!Number.isNaN(numberA) && !Number.isNaN(numberB)) {
+        if (numberA < numberB) return order === 'asc' ? -1 : 1;
+        if (numberA > numberB) return order === 'asc' ? 1 : -1;
+        return 0;
+      }
+
+      return order === 'asc'
+        ? String(valueA).localeCompare(String(valueB))
+        : String(valueB).localeCompare(String(valueA));
+    }
+
+    if (typeof valueA === 'number' && typeof valueB === 'number') {
+      if (valueA < valueB) return order === 'asc' ? -1 : 1;
+      if (valueA > valueB) return order === 'asc' ? 1 : -1;
+    }
+
+    return 0; 
+  };
+
 }
+
 
 // ----------------------------------------------------------------------
 
